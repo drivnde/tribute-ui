@@ -77,7 +77,7 @@ export default function Members() {
   if (!Object.values(members).length && isLoadingDone) {
     return (
       <RenderWrapper>
-        <p className="text-center">No members, yet!</p>
+        <p className="text-center">No employees, yet!</p>
       </RenderWrapper>
     );
   }
@@ -87,7 +87,7 @@ export default function Members() {
       <div className="grid--fluid grid-container">
         {/* ACTIVE MEMBERS */}
         <div>
-          <div className="grid__header">Active Members</div>
+          <div className="grid__header">Active Employees</div>
           <div className="grid__cards">{renderMemberCards(members)}</div>
         </div>
       </div>
@@ -104,7 +104,7 @@ function RenderWrapper(props: React.PropsWithChildren<any>): JSX.Element {
     <Wrap className="section-wrapper">
       <FadeIn>
         <div className="titlebar">
-          <h2 className="titlebar__title">Members</h2>
+          <h2 className="titlebar__title">Employees</h2>
         </div>
         {/* RENDER CHILDREN */}
         {props.children}

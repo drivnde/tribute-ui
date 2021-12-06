@@ -54,9 +54,9 @@ function RenderWrapper(props: React.PropsWithChildren<any>): JSX.Element {
     <Wrap className="section-wrapper">
       <FadeIn>
         <div className="titlebar">
-          <h2 className="titlebar__title">Membership</h2>
+          <h2 className="titlebar__title">Team</h2>
           <button className="titlebar__action" onClick={viewMembers}>
-            View members
+            View employees
           </button>
         </div>
 

@@ -77,7 +77,7 @@ export default function GetStarted() {
                 onClick={() => {
                   history.push('/join');
                 }}>
-                Join
+                Dashboard
               </button>
             </div>
           </div>

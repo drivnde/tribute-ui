@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+  import {useCallback, useEffect, useState} from 'react';
 import {useLazyQuery} from '@apollo/react-hooks';
 import {useSelector} from 'react-redux';
 import {AbiItem, toBN, toChecksumAddress} from 'web3-utils';
@@ -225,6 +225,8 @@ export default function useMembers(): UseMembersReturn {
         });
 
         const membersWithDetails = memberAddresses.map((address, index) => ({
+          name: "Marcel Schlimper",
+          jobTitle: "Software Developer",
           address,
           delegateKey: memberAddressesByDelegatedKey[index],
           isDelegated:

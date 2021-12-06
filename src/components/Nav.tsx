@@ -40,7 +40,7 @@ export function NavLinks() {
       <ul className="nav__list" data-testid="nav__list">
         <li tabIndex={0}>
           <NavLink to="/membership">
-            <span>Membership</span>
+            <span>Team</span>
           </NavLink>
         </li>
         <li tabIndex={0}>

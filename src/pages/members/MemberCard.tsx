@@ -40,6 +40,9 @@ export default function MemberCard(props: MemberCardProps): JSX.Element {
         }`}>
         {/* TITLE */}
         <h3 className="membercard__title">
+          Paul
+        </h3>
+        <h3 className="membercard__title">
           {truncateEthAddress(member.address, 7)}
         </h3>
       </div>
