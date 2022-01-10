@@ -3,6 +3,8 @@
  */
 
 export type Member = {
+  name: string;
+  jobTitle: string;
   address: string;
   addressENS?: string;
   delegateKey: string;

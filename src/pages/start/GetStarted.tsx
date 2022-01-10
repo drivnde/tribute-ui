@@ -78,7 +78,7 @@ export default function GetStarted() {
                 onClick={() => {
                   history.push(ENABLE_KYC_ONBOARDING ? '/join' : '/onboard');
                 }}>
-                Join
+                Dashboard
               </button>
             </div>
           </div>

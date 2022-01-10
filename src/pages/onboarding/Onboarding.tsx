@@ -57,6 +57,9 @@ function RenderWrapper(props: React.PropsWithChildren<any>): JSX.Element {
           <h2 className="titlebar__title">Onboarding</h2>
           <button className="titlebar__action" onClick={goToNewProposal}>
             Onboard
+          <h2 className="titlebar__title">Team</h2>
+          <button className="titlebar__action" onClick={viewMembers}>
+            View employees
           </button>
         </div>
 

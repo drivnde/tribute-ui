@@ -265,6 +265,8 @@ export default function useMembers(): UseMembersReturn {
         });
 
         const membersWithDetails = memberAddresses.map((address, index) => ({
+          name: "Marcel Schlimper",
+          jobTitle: "Software Developer",
           address,
           delegateKey: memberAddressesByDelegatedKey[index],
           isDelegated:

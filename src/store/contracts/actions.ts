@@ -147,6 +147,7 @@ export function initContractDaoRegistry(web3Instance: Web3) {
 
         const daoRegistryContract: AbiItem[] = lazyDaoRegistryABI as any;
         const contractAddress = DAO_REGISTRY_CONTRACT_ADDRESS;
+        console.warn(contractAddress)
 
         if (!contractAddress) {
           throw new Error('No DAO Registry contract address was found.');
@@ -565,7 +566,7 @@ export function initContractThunkFactory({
               adapterOrExtensionName as any as ContractAdapterNames,
               getState().contracts.DaoRegistryContract?.instance
             ));
-
+              
       dispatch(
         createContractAction({
           type: actionType,
@@ -578,7 +579,7 @@ export function initContractThunkFactory({
     } catch (error) {
       // Warn instead of throwing as we want the Dapp to fail gracefully.
       console.warn(
-        `The contract "${adapterOrExtensionName}" could not be found in the DAO. Are you sure you meant to add this contract's ABI?`
+        `The contract "${adapterOrExtensionName}" could not be found in the DAO. Are you sure you meant to add this contract's ABI? ${contractAddress}`
       );
     }
   };
