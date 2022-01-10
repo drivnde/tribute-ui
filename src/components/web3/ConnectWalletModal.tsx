@@ -5,15 +5,14 @@ import {usePrevious} from 'react-use';
 import {useSelector} from 'react-redux';
 
 import {CHAINS} from '../../config';
+import {CopyWithTooltip} from '../common/CopyWithTooltip';
 import {CycleEllipsis} from '../feedback';
 import {StoreState} from '../../store/types';
-import {truncateEthAddress} from '../../util/helpers';
 import {useIsDefaultChain} from './hooks';
 import {useWeb3Modal} from './hooks';
 import {WalletIcon} from '.';
 import LoaderLarge from '../feedback/LoaderLarge';
 import Modal from '../common/Modal';
-
 import TimesSVG from '../../assets/svg/TimesSVG';
 
 type ConnectWalletModalProps = {
@@ -53,6 +52,7 @@ export default function ConnectWalletModal(
     // @todo Use and handle error in the UI
     // error,
     account,
+    accountENS,
     connected,
     connectWeb3Modal,
     disconnectWeb3Modal,
@@ -214,10 +214,26 @@ export default function ConnectWalletModal(
 
         {/* CONNECTED ACCOUNT TEXT */}
         {account && (
-          <div>
-            <span className="walletconnect__connected-address-text">
-              {truncateEthAddress(account, 7)}
-            </span>
+          <div className="walletconnect__connected-address">
+            <CopyWithTooltip
+              render={({elementRef, isCopied, setCopied, tooltipID}) => (
+                <span
+                  className="walletconnect__connected-address-text"
+                  data-for={tooltipID}
+                  data-tip={
+                    isCopied
+                      ? 'copied!'
+                      : accountENS
+                      ? `${accountENS} (${account})`
+                      : 'copy'
+                  }
+                  onClick={setCopied}
+                  ref={elementRef}>
+                  {accountENS || account}
+                </span>
+              )}
+              textToCopy={account}
+            />
           </div>
         )}
 

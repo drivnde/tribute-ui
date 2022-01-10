@@ -1,7 +1,7 @@
-  import {useCallback, useEffect, useState} from 'react';
+import {AbiItem, toBN, toChecksumAddress} from 'web3-utils';
+import {useCallback, useEffect, useState} from 'react';
 import {useLazyQuery} from '@apollo/react-hooks';
 import {useSelector} from 'react-redux';
-import {AbiItem, toBN, toChecksumAddress} from 'web3-utils';
 
 import {AsyncStatus} from '../../../util/types';
 import {GET_MEMBERS} from '../../../gql';
@@ -11,7 +11,7 @@ import {normalizeString} from '../../../util/helpers';
 import {StoreState} from '../../../store/types';
 import {SubgraphNetworkStatus} from '../../../store/subgraphNetworkStatus/types';
 import {UNITS_ADDRESS} from '../../../config';
-import {useWeb3Modal} from '../../../components/web3/hooks';
+import {useENSName, useWeb3Modal} from '../../../components/web3/hooks';
 
 type UseMembersReturn = {
   members: Member[];
@@ -47,6 +47,9 @@ export default function useMembers(): UseMembersReturn {
 
   const {web3Instance} = useWeb3Modal();
 
+  const [ensReverseResolvedAddresses, setAddressesToENSReverseResolve] =
+    useENSName(web3Instance);
+
   /**
    * GQL Query
    */
@@ -63,10 +66,11 @@ export default function useMembers(): UseMembersReturn {
    */
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [membersError, setMembersError] = useState<Error>();
+
   const [membersStatus, setMembersStatus] = useState<AsyncStatus>(
     AsyncStatus.STANDBY
   );
-  const [membersError, setMembersError] = useState<Error>();
 
   /**
    * Cached callbacks
@@ -75,6 +79,7 @@ export default function useMembers(): UseMembersReturn {
   const getMembersFromRegistryCached = useCallback(getMembersFromRegistry, [
     BankExtensionContract,
     DaoRegistryContract,
+    setAddressesToENSReverseResolve,
     web3Instance,
   ]);
 
@@ -82,7 +87,7 @@ export default function useMembers(): UseMembersReturn {
     data,
     error,
     getMembersFromRegistryCached,
-    loading,
+    setAddressesToENSReverseResolve,
   ]);
 
   /**
@@ -97,7 +102,7 @@ export default function useMembers(): UseMembersReturn {
 
   useEffect(() => {
     if (subgraphNetworkStatus === SubgraphNetworkStatus.OK) {
-      if (!loading && DaoRegistryContract?.contractAddress) {
+      if (called && !loading && DaoRegistryContract?.contractAddress) {
         getMembersFromSubgraphCached();
       }
     } else {
@@ -107,11 +112,27 @@ export default function useMembers(): UseMembersReturn {
     }
   }, [
     DaoRegistryContract?.contractAddress,
+    called,
     getMembersFromRegistryCached,
     getMembersFromSubgraphCached,
     loading,
     subgraphNetworkStatus,
   ]);
+
+  /**
+   * Set `Member.addressENS`
+   *
+   * Will be the same as the `Member.address` if no ENS reverse resolution found.
+   */
+  useEffect(() => {
+    if (membersStatus !== AsyncStatus.FULFILLED) return;
+
+    setMembers((members) =>
+      members.map(
+        (m, i): Member => ({...m, addressENS: ensReverseResolvedAddresses[i]})
+      )
+    );
+  }, [ensReverseResolvedAddresses, membersStatus]);
 
   /**
    * Functions
@@ -121,14 +142,16 @@ export default function useMembers(): UseMembersReturn {
     try {
       setMembersStatus(AsyncStatus.PENDING);
 
-      if (!loading && data) {
+      if (data) {
         // extract members from gql data
         const {members} = data.tributeDaos[0] as Record<string, any>;
+
         // Filter out any member that has fully ragequit (no positive balance in
         // UNITS)
         const filteredMembers = members.filter(
           (member: Record<string, any>) => !member.didFullyRagequit
         );
+
         const filteredMembersWithDetails = filteredMembers.map(
           (member: Record<string, any>) => {
             // remove gql data that is no longer needed
@@ -145,15 +168,27 @@ export default function useMembers(): UseMembersReturn {
 
         setMembersStatus(AsyncStatus.FULFILLED);
         setMembers(filteredMembersWithDetails);
+
+        setAddressesToENSReverseResolve(
+          filteredMembersWithDetails.map((m: Member) => m.address)
+        );
       } else {
         if (error) {
-          throw new Error(error.message);
+          throw new Error(`subgraph query error: ${error.message}`);
+        } else if (typeof data === 'undefined') {
+          // Additional case to catch `{"errors":{"message":"No indexers found
+          // for subgraph deployment"}}` which does not get returned as an error
+          // by the graph query call.
+          throw new Error('subgraph query error: data is undefined');
         }
       }
     } catch (error) {
+      const {message} = error as Error;
+
       // If there is a subgraph query error fallback to fetching members info
       // directly from smart contracts
-      console.log(`subgraph query error: ${error.message}`);
+      console.log(message);
+
       getMembersFromRegistryCached();
     }
   }
@@ -179,6 +214,7 @@ export default function useMembers(): UseMembersReturn {
         const getMemberAddressABI = daoRegistryABI.find(
           (item) => item.name === 'getMemberAddress'
         );
+
         const getMemberAddressCalls = [...Array(Number(nbMembers)).keys()].map(
           (index): MulticallTuple => [
             daoRegistryAddress,
@@ -186,6 +222,7 @@ export default function useMembers(): UseMembersReturn {
             [index.toString()],
           ]
         );
+
         const memberAddresses: string[] = await multicall({
           calls: getMemberAddressCalls,
           web3Instance,
@@ -195,6 +232,7 @@ export default function useMembers(): UseMembersReturn {
         const memberAddressesByDelegatedKeyABI = daoRegistryABI.find(
           (item) => item.name === 'memberAddressesByDelegatedKey'
         );
+
         const memberAddressesByDelegatedKeyCalls = memberAddresses.map(
           (address): MulticallTuple => [
             daoRegistryAddress,
@@ -202,6 +240,7 @@ export default function useMembers(): UseMembersReturn {
             [address],
           ]
         );
+
         const memberAddressesByDelegatedKey: string[] = await multicall({
           calls: memberAddressesByDelegatedKeyCalls,
           web3Instance,
@@ -212,13 +251,14 @@ export default function useMembers(): UseMembersReturn {
           BankExtensionContract;
 
         const balanceOfABI = bankABI.find((item) => item.name === 'balanceOf');
-        const unitsBalanceOfCalls = memberAddressesByDelegatedKey.map(
+        const unitsBalanceOfCalls = memberAddresses.map(
           (address): MulticallTuple => [
             bankAddress,
             balanceOfABI as AbiItem,
             [address, UNITS_ADDRESS],
           ]
         );
+
         const unitsBalances: string[] = await multicall({
           calls: unitsBalanceOfCalls,
           web3Instance,
@@ -244,13 +284,19 @@ export default function useMembers(): UseMembersReturn {
           .reverse();
 
         setMembers(filteredMembersWithDetails);
+
+        setAddressesToENSReverseResolve(
+          filteredMembersWithDetails.map((m: Member) => m.address)
+        );
       }
 
       setMembersStatus(AsyncStatus.FULFILLED);
     } catch (error) {
+      const e = error as Error;
+
       setMembersStatus(AsyncStatus.REJECTED);
       setMembers([]);
-      setMembersError(error);
+      setMembersError(e);
     }
   }
 

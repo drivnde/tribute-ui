@@ -27,8 +27,7 @@ export default function ConnectWalletButton({
    * Our hooks
    */
 
-  const {account, connected, web3Modal} = useWeb3Modal();
-
+  const {account, accountENS, connected, web3Modal} = useWeb3Modal();
   const {isDefaultChain} = useIsDefaultChain();
 
   /**
@@ -55,7 +54,7 @@ export default function ConnectWalletButton({
     }
 
     if (account) {
-      return truncateEthAddress(account);
+      return accountENS || truncateEthAddress(account);
     }
 
     return 'Connect';

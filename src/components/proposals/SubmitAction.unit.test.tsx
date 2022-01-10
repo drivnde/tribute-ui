@@ -93,6 +93,7 @@ describe('SubmitAction unit tests', () => {
           timestamp: (Date.now() / 1000).toFixed(),
         },
         sig: DEFAULT_SIG,
+        address: DEFAULT_ETH_ADDRESS,
         actionId,
       } as any,
       refetchProposalOrDraft: refetchSpy || (() => {}),
@@ -120,6 +121,7 @@ describe('SubmitAction unit tests', () => {
           timestamp: (Date.now() / 1000).toFixed(),
         },
         sig: DEFAULT_SIG,
+        address: DEFAULT_ETH_ADDRESS,
         actionId,
       } as any,
       refetchProposalOrDraft: refetchSpy || (() => {}),
@@ -378,11 +380,7 @@ describe('SubmitAction unit tests', () => {
               [
                 0,
                 [
-                  // `isNotReservedAddress`
-                  web3Instance.eth.abi.encodeParameter('bool', true),
-                  // `isNotZeroAddress`
-                  web3Instance.eth.abi.encodeParameter('bool', true),
-                  // `isNotReservedAddress`
+                  // `getAddressIfDelegated`
                   web3Instance.eth.abi.encodeParameter(
                     'address',
                     '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
@@ -428,7 +426,7 @@ describe('SubmitAction unit tests', () => {
     // Disabled reason
     expect(
       screen.getByText(
-        /the applicant address 0x04028\.\.\.11d is already in use as a delegate key\. the address must be removed as a delegate before it can become a member\./i
+        /the applicant address 0x04028\.\.\.211d is already in use as a delegate key\. the address must be removed as a delegate before it can become a member\./i
       )
     ).toBeInTheDocument();
   });

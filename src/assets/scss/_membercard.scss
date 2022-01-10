@@ -4,9 +4,8 @@
 .membercard {
   background-color: $color-background-primary;
   border-radius: 15px;
-  padding: 2rem;
-  position: relative;
   box-shadow: 0 2px 2px 0 $color-shadow-primary;
+  padding: 2rem;
 
   &:hover {
     cursor: pointer;
@@ -15,6 +14,12 @@
   &--connected-account {
     box-shadow: 0 2px 2px 0 $color-primary-hover;
   }
+}
+
+.membercard__row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
 }
 
 .membercard__link {
@@ -28,9 +33,42 @@
     16px,
     20px
   ); /* min font-size 1rem, max 1.25rem */
-  line-height: 1.6;
-  text-align: center;
+  @include text-truncate;
   font-weight: normal;
+  line-height: 1.6;
+  margin: 0;
+  text-align: center;
+
+  &:last-child {
+    margin: 0;
+  }
+}
+
+.membercard__units {
+  @include fluid-type(
+    $bp-sm,
+    $bp-xl,
+    16px,
+    20px
+  ); /* min font-size 1rem, max 1.25rem */
+  background: $color-shadow-primary;
+  border-radius: 0.25em;
+  font-family: $font-accent;
+  margin-left: 0.25em;
+  padding: 0 0.33em;
+}
+
+.membercard__ens {
+  @include fluid-type(
+    $bp-sm,
+    $bp-xl,
+    16px,
+    18px
+  ); /* min font-size 1rem, max 1.125rem */
+  @include text-truncate;
+  font-weight: normal;
+  margin-top: 0.5em;
+  text-align: center;
 
   &:last-child {
     margin: 0;
